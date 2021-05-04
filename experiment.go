@@ -1,6 +1,7 @@
 package scientist
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -12,12 +13,14 @@ type Result struct {
 	ControlResult     interface{}
 	CandidateResult   interface{}
 	CandidateError    error
+	ControlError      error
 }
 
 type Experiment struct {
 	Name string
 	Result
 	functions map[string]func() (interface{}, error)
+	random    bool
 }
 
 func (e *Experiment) Use(runner func() (interface{}, error)) {
@@ -73,14 +76,34 @@ func (e *Experiment) Run() (interface{}, error) {
 		e.Result.ResultsAreEqual = e.Result.ControlResult == e.Result.CandidateResult
 	}()
 
-	e.functions["candidate"]()
-	return e.functions["control"]()
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
 
+	if e.random == true {
+		value := r1.Intn(100)
+
+		if value < 50 { // run candidate or control first
+			e.functions["candidate"]()
+		} else {
+			e.functions["control"]()
+		}
+
+		if value < 50 { // run control or candidate next
+			e.functions["control"]()
+		} else {
+			e.functions["candidate"]()
+		}
+	} else {
+		e.functions["candidate"]()
+		return e.functions["control"]()
+	}
+
+	return e.Result.ControlResult, e.Result.ControlError
 }
 
-func New(name string) *Experiment {
+func New(name string, random bool) *Experiment {
 
-	exp := Experiment{Name: name, functions: make(map[string]func() (interface{}, error))}
+	exp := Experiment{Name: name, random: random, functions: make(map[string]func() (interface{}, error))}
 
 	return &exp
 }
