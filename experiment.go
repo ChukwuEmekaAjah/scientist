@@ -9,9 +9,9 @@ type Result struct {
 	CandidateDuration float64
 	ResultsAreEqual   bool
 	Duration          float64
-	controlResult     interface{}
-	candidateResult   interface{}
-	candidateError    error
+	ControlResult     interface{}
+	CandidateResult   interface{}
+	CandidateError    error
 }
 
 type Experiment struct {
@@ -28,10 +28,11 @@ func (e *Experiment) Use(runner func() (interface{}, error)) {
 		result, err := runner()
 
 		if err != nil {
-			panic(err)
+			e.Result.ControlResult = nil
+			return nil, err
+		} else {
+			e.Result.ControlResult = result
 		}
-
-		e.Result.controlResult = result
 
 		defer func() {
 			diff := float64(time.Since(start) / time.Second)
@@ -50,10 +51,10 @@ func (e *Experiment) Try(runner func() (interface{}, error)) {
 		result, err := runner()
 
 		if err != nil {
-			e.Result.candidateError = err
+			e.Result.CandidateError = err
 		}
 
-		e.Result.candidateResult = result
+		e.Result.CandidateResult = result
 
 		defer func() {
 			diff := float64(time.Since(start) / time.Second)
@@ -69,7 +70,7 @@ func (e *Experiment) Run() (interface{}, error) {
 
 	defer func() {
 		e.Result.Duration = e.Result.ControlDuration + e.Result.CandidateDuration
-		e.Result.ResultsAreEqual = e.Result.controlResult == e.Result.candidateResult
+		e.Result.ResultsAreEqual = e.Result.ControlResult == e.Result.CandidateResult
 	}()
 
 	e.functions["candidate"]()
@@ -79,7 +80,7 @@ func (e *Experiment) Run() (interface{}, error) {
 
 func New(name string) *Experiment {
 
-	exp := Experiment{Name: "Loops", functions: make(map[string]func() (interface{}, error))}
+	exp := Experiment{Name: name, functions: make(map[string]func() (interface{}, error))}
 
 	return &exp
 }
