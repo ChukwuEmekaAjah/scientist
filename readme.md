@@ -26,7 +26,7 @@ go get github.com/ChukwuEmekaAjah/scientist
 
     func main() {
 
-        exp := scientist.New("Loops")
+        exp := scientist.New("Loops", true)
 
         control := func() (interface{}, error) {
             return longLoop()
@@ -69,10 +69,14 @@ Methods on the <b>Experiment</b> struct:
 - exp.Use: Runs the original implementation of the function or method to be experimented on
 - exp.Try: Runs the new implementation of the function or method
 - exp.Run: Executes `.Try` and `.Use` and then returns the values from `.Use`
+- scientist.New: Creates a new experiment struct and returns a pointer to the created experiment.
 
 Properties of the <b>Experiment</b> struct:
 - exp.Result: It's a struct that contains fields on the duration of the experiment, duration of the control experiment and that of the candidates.
 
+
+## Understanding API methods and properties
+WIP
 
 
 ## Contributing
@@ -85,4 +89,4 @@ git clone https://github.com/ChukwuEmekaAjah/scientist.git
 ```
 
 ## Todo
-- Enable parameter for random execution of control and candidate function implementations
+- Write more documentation on the explanation of experiment methods parameters.
